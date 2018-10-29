@@ -20,8 +20,11 @@ package org.wso2.carbon.identity.oauth.endpoint.introspection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.json.JSONException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -203,6 +206,20 @@ public class IntrospectionResponseBuilder {
      */
     public IntrospectionResponseBuilder setErrorDescription(String description) {
         parameters.put(IntrospectionResponse.Error.ERROR_DESCRIPTION, description);
+        return this;
+    }
+
+    public IntrospectionResponseBuilder setPermissions(List<Resource> resources) {
+
+        List<Map<String, Object>> permissions = new ArrayList<>();
+        for (Resource resource : resources) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("resource_id", resource.getResourceId());
+            data.put("resource_scopes", resource.getResourceScopes());
+            permissions.add(data);
+        }
+
+        parameters.put(IntrospectionResponse.PERMISSIONS, permissions);
         return this;
     }
 }

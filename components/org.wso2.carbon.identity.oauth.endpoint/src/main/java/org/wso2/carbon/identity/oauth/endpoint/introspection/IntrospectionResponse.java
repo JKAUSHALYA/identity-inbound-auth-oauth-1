@@ -72,6 +72,8 @@ public final class IntrospectionResponse {
     // time-stamp to indicate when this token was originally issued
     public static final String IAT = "iat";
 
+    public static final String PERMISSIONS = "permissions";
+
     class Error {
 
         public static final String INVALID_REQUEST = "invalid_request";

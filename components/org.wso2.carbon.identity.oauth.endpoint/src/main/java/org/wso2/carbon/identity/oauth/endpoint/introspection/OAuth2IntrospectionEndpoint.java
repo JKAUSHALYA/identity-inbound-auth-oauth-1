@@ -22,10 +22,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2IntrospectionResponseDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationRequestDTO;
 
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
@@ -114,6 +119,23 @@ public class OAuth2IntrospectionEndpoint {
                     .setSubject(introspectionResponse.getSub())
                     .setTokenType(JWT_TOKEN_TYPE)
                     .setIssuer(introspectionResponse.getIss());
+        }
+
+        // THIS IS UMA !!!!!
+        PermissionService permissionService = (PermissionService) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(PermissionService.class);
+
+        List<Resource> resources;
+        try {
+            resources = permissionService.validateAccessToken(token);
+        } catch (UMAClientException | UMAServerException e) {
+            log.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{'error': 'Error occurred while building the json response.'}").build();
+        }
+
+        if (!resources.isEmpty()) {
+            respBuilder.setPermissions(resources);
         }
 
         //provide jwt in the response only if claims are requested
